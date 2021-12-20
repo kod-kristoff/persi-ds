@@ -3,53 +3,47 @@ use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct Tree<T> {
-    root: Rc<TreeNode<T>>,
+    root: Option<Rc<TreeNode<T>>>,
 }
 
 impl<T> Tree<T> {
     pub fn new() -> Self {
-        let root = Rc::new(TreeNode::Empty);
-        Tree { root }
+        Tree { root: None }
     }
 
     pub fn leaf(x: T) -> Self {
         Tree {
-            root: Rc::new(TreeNode::Node(x, List::new())),
+            root: Some(Rc::new(TreeNode::leaf(x))),
         }
     }
 
     pub fn tree(x: T, children: &List<Self>) -> Self {
         Tree {
-            root: Rc::new(TreeNode::Node(x, children.clone())),
+            root: Some(Rc::new(TreeNode::new(x, children.clone()))),
         }
     }
 
     pub fn is_empty(&self) -> bool {
-        match &*self.root {
-            TreeNode::Empty => true,
-            _ => false,
-        }
+        self.root.is_none()
     }
 
     pub fn root(&self) -> Option<&T> {
-        match &*self.root {
-            TreeNode::Empty => None,
-            TreeNode::Node(x, _children) => Some(x),
-        }
+        self.root.as_ref().map(|node| &node.element)
     }
 
-    pub fn children(&self) -> &List<Tree<T>> {
-        match &*self.root {
-            TreeNode::Empty => panic!("Empty tree"),
-            TreeNode::Node(_x, children) => children,
-        }
+    pub fn children(&self) -> Option<&List<Tree<T>>> {
+        self.root.as_ref().map(|node| &node.children)
+//        match &*self.root {
+//            TreeNode::Empty => panic!("Empty tree"),
+//            TreeNode::Node(_x, children) => children,
+//        }
     }
 }
 
 impl<T> Clone for Tree<T> {
     fn clone(&self) -> Self {
         Tree {
-            root: Rc::clone(&self.root),
+            root: self.root.clone(),
         }
     }
 }
@@ -59,20 +53,42 @@ where
     T: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
-        match &*self.root {
-            TreeNode::Empty => other.is_empty(),
-            TreeNode::Node(x, xs) => match &*other.root {
-                TreeNode::Empty => false,
-                TreeNode::Node(y, ys) => x == y && xs == ys,
+        match self.root.as_ref() {
+            None => other.is_empty(),
+            Some(x) => match other.root.as_ref() {
+                None => false,
+                Some(y) => x == y,
             },
         }
     }
 }
 
 #[derive(Debug)]
-enum TreeNode<T> {
-    Empty,
-    Node(T, List<Tree<T>>),
+struct TreeNode<T> {
+    element: T,
+    children: List<Tree<T>>,
+}
+
+impl<T> TreeNode<T> {
+    fn leaf(element: T) -> Self {
+        Self {
+            element,
+            children: List::new(),
+        }
+    }
+
+    fn new(element: T, children: List<Tree<T>>) -> Self {
+        Self { element, children }
+    }
+}
+
+impl<T> PartialEq for TreeNode<T>
+where
+    T: PartialEq,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.element == other.element && self.children == other.children
+    }
 }
 
 #[cfg(test)]
@@ -86,6 +102,7 @@ mod tests {
 
         assert!(tree.is_empty());
         assert_eq!(tree.root(), None);
+        assert_eq!(tree.children(), None);
     }
 
     #[test]
@@ -94,7 +111,7 @@ mod tests {
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&5));
-        assert!(tree.children().is_empty());
+        assert!(tree.children().unwrap().is_empty());
     }
 
     #[test]
@@ -103,7 +120,7 @@ mod tests {
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
-        assert!(tree.children().is_empty());
+        assert!(tree.children().unwrap().is_empty());
     }
 
     #[test]
@@ -113,8 +130,8 @@ mod tests {
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
-        assert!(!tree.children().is_empty());
-        assert_eq!(tree.children(), &children);
+        assert!(!tree.children().unwrap().is_empty());
+        assert_eq!(tree.children(), Some(&children));
     }
 
     #[test]
@@ -133,5 +150,6 @@ mod tests {
         assert!(t3 != Tree::leaf(5));
         assert!(t4 == t5);
         assert!(t4 != t6);
+        assert!(t6 == t6);
     }
 }
