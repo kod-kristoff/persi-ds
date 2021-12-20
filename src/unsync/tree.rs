@@ -17,9 +17,9 @@ impl<T> Tree<T> {
         }
     }
 
-    pub fn tree(x: T, children: &List<Self>) -> Self {
+    pub fn tree(x: T, children: List<Self>) -> Self {
         Tree {
-            root: Some(Rc::new(TreeNode::new(x, children.clone()))),
+            root: Some(Rc::new(TreeNode::new(x, children))),
         }
     }
 
@@ -33,10 +33,6 @@ impl<T> Tree<T> {
 
     pub fn children(&self) -> Option<&List<Tree<T>>> {
         self.root.as_ref().map(|node| &node.children)
-//        match &*self.root {
-//            TreeNode::Empty => panic!("Empty tree"),
-//            TreeNode::Node(_x, children) => children,
-//        }
     }
 }
 
@@ -116,7 +112,7 @@ mod tests {
 
     #[test]
     fn tree_creates_tree_w_no_children() {
-        let tree = Tree::tree("a", &List::new());
+        let tree = Tree::tree("a", List::new());
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
@@ -126,7 +122,7 @@ mod tests {
     #[test]
     fn tree_creates_tree_w_children() {
         let children = unsynced_list!(Tree::leaf("b"), Tree::leaf("c"));
-        let tree = Tree::tree("a", &children);
+        let tree = Tree::tree("a", children.clone());
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
@@ -139,9 +135,9 @@ mod tests {
         let t1 = Tree::<i32>::new();
         let t2 = Tree::<i32>::new();
         let t3 = Tree::leaf(4);
-        let t4 = Tree::tree(4, &unsynced_list!(Tree::leaf(5)));
-        let t5 = Tree::tree(4, &unsynced_list!(Tree::leaf(5)));
-        let t6 = Tree::tree(4, &unsynced_list!(Tree::leaf(6)));
+        let t4 = Tree::tree(4, unsynced_list!(Tree::leaf(5)));
+        let t5 = Tree::tree(4, unsynced_list!(Tree::leaf(5)));
+        let t6 = Tree::tree(4, unsynced_list!(Tree::leaf(6)));
         assert!(t1 == t2);
         assert!(t1 != t3);
         assert!(t1 != t4);
