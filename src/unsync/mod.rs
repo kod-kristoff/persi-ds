@@ -1,3 +1,4 @@
+pub mod binary_tree;
 pub mod list;
 pub mod rb_map;
 pub mod rb_tree;

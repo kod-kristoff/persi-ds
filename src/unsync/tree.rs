@@ -87,6 +87,15 @@ where
     }
 }
 
+impl<T: Clone> Clone for TreeNode<T> {
+    fn clone(&self) -> Self {
+        Self {
+            element: self.element.clone(),
+            children: self.children.clone(),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -147,5 +156,45 @@ mod tests {
         assert!(t4 == t5);
         assert!(t4 != t6);
         assert!(t6 == t6);
+    }
+
+    #[test]
+    fn tree_is_clone() {
+        let t1 = Tree::<&str>::new();
+        let t2 = Tree::leaf("a");
+        let t3 = Tree::tree("b", List::from_value(t2.clone()));
+
+        assert_eq!(t1, t1.clone());
+        assert_eq!(t2, t2.clone());
+        assert_eq!(t3, t3.clone());
+    }
+
+    mod non_clonable {
+        use super::*;
+
+        #[derive(Debug, PartialEq)]
+        struct NoClone {
+            pub v: Box<String>, 
+        }
+
+        #[test]
+        fn leaf_tree_can_be_cloned() {
+            let v1 = NoClone { v: Box::new(String::from("r")) };
+            let t1 = Tree::leaf(v1);
+            let t1_clone = t1.clone();
+            assert_eq!(t1, t1_clone);
+        }
+
+        #[test]
+        fn tree_can_be_cloned() {
+            let v1 = NoClone { v: Box::new(String::from("r")) };
+            let v2 = NoClone { v: Box::new(String::from("r")) };
+            let t1 = Tree::leaf(v1);
+            let t2 = Tree::tree(v2, List::from_value(t1.clone()));
+            let t1_clone = t1.clone();
+            assert_eq!(t1, t1_clone);
+            let t2_clone = t2.clone();
+            assert_eq!(t2, t2_clone);
+        }
     }
 }
