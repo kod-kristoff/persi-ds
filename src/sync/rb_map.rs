@@ -1,6 +1,5 @@
-use crate::{common::KeyValue, unsync::rb_tree::RBTree};
+use crate::{common::KeyValue, sync::rb_tree::RBTree};
 
-#[derive(Debug)]
 pub struct RBMap<K, V>(RBTree<KeyValue<K, V>>);
 
 //pub struct RBMap<K, V> {
@@ -10,7 +9,7 @@ pub struct RBMap<K, V>(RBTree<KeyValue<K, V>>);
 impl<K, V> RBMap<K, V>
 where
     K: Clone + PartialOrd,
-    V: Clone,
+    // V: Clone,
 {
     pub fn new() -> Self {
         RBMap(RBTree::<KeyValue<K, V>>::new())
@@ -24,11 +23,17 @@ where
         self.0.contains(k)
     }
 
-    pub fn inserted(&self, k: K, v: V) -> Self {
+    pub fn inserted(&self, k: K, v: V) -> Self
+    where
+        V: Clone,
+    {
         RBMap(self.0.inserted(KeyValue(k, v)))
     }
 
-    pub fn inserted_or_replaced(&self, k: K, v: V) -> Self {
+    pub fn inserted_or_replaced(&self, k: K, v: V) -> Self
+    where
+        V: Clone,
+    {
         RBMap(self.0.inserted_or_replaced(KeyValue(k, v)))
     }
 
