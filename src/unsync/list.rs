@@ -152,8 +152,11 @@ impl<T> List<T> {
         self.popped_front()
     }
 
-    pub fn head_tail(&self) -> (Option<&T>, List<T>) {
-        (self.front(), self.tail())
+    pub fn head_tail(&self) -> (Option<T>, List<T>)
+    where
+        T: Clone,
+    {
+        (self.front().cloned(), self.tail())
     }
 
     pub fn pushed_front(&self, value: T) -> List<T> {
