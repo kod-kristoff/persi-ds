@@ -76,6 +76,10 @@ impl<T> List<T> {
         (self.front().cloned(), self.tail())
     }
 
+    pub fn head_tail_ref(&self) -> (Option<&T>, List<T>) {
+        (self.front(), self.tail())
+    }
+
     pub fn pushed_front(&self, value: T) -> List<T> {
         List::cons(value, self)
     }
@@ -171,9 +175,18 @@ where
     T: PartialEq + Clone,
 {
     fn eq(&self, other: &Self) -> bool {
-        self.iter()
-            .zip_longest(other.iter())
-            .all(|x| matches!(x, EitherOrBoth::Both(a, b) if a == b))
+        match (self.is_empty(), other.is_empty()) {
+            (true, true) => return true,
+            (true, false) => return false,
+            (false, true) => return false,
+            _ => {}
+        };
+        match (self.head_tail_ref(), other.head_tail_ref()) {
+            ((Some(self_head), self_tail), (Some(other_head), other_tail)) => {
+                self_head == other_head && self_tail == other_tail
+            }
+            _ => false,
+        }
     }
 }
 
