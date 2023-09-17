@@ -1,17 +1,30 @@
 use itertools::{EitherOrBoth, Itertools};
+use std::borrow::Borrow;
 use std::fmt;
 use std::fmt::Debug;
 use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct List<T> {
-    head: Option<Rc<Node<T>>>,
+    head: Link<T>,
 }
 
+type Link<T> = Option<Rc<Node<T>>>;
 #[derive(Debug)]
 pub struct Node<T> {
     element: T,
     next: Option<Rc<Node<T>>>,
+}
+
+impl<T> Node<T> {
+    fn cons(element: T, next: Link<T>) -> Link<T> {
+        Some(Rc::new(Node { element, next }))
+    }
+}
+impl<T> Default for List<T> {
+    fn default() -> Self {
+        List { head: None }
+    }
 }
 
 impl<T> List<T> {
@@ -23,7 +36,18 @@ impl<T> List<T> {
     /// let list: List<u32> = List::new();
     /// ```
     pub fn new() -> List<T> {
-        List { head: None }
+        List::default()
+    }
+
+    /// Creates an empty `List``.
+    ///
+    /// # Examples
+    /// ```
+    /// use persi_ds::unsync::List;
+    /// let list: List<u32> = List::empty();
+    /// ```
+    pub fn empty() -> List<T> {
+        List::default()
     }
 
     /// Creates a list with the element given as head
@@ -36,13 +60,14 @@ impl<T> List<T> {
     /// use persi_ds::unsync::List;
     ///
     /// let list = List::cons(1, &List::new());
+    /// let list = List::cons(1, List::new());
     /// ```
-    pub fn cons(element: T, tail: &List<T>) -> List<T> {
+    pub fn cons<N>(element: T, tail: N) -> List<T>
+    where
+        N: Borrow<List<T>>,
+    {
         List {
-            head: Some(Rc::new(Node {
-                element,
-                next: tail.head.clone(),
-            })),
+            head: Node::cons(element, tail.borrow().head.clone()),
         }
     }
 

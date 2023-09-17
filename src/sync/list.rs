@@ -76,7 +76,7 @@ impl<T> List<T> {
     where
         T: Clone,
     {
-        reverse(self)
+        reverse(self.clone())
     }
 
     pub fn iter(&self) -> Iter<'_, T> {
@@ -169,12 +169,12 @@ where
     }
 }
 
-pub fn filter<T: Copy>(p: impl FnOnce(&T) -> bool + Copy, list: &List<T>) -> List<T> {
+pub fn filter<T: Clone>(p: impl FnOnce(&T) -> bool + Copy, list: &List<T>) -> List<T> {
     match list.front() {
         Some(head) => {
             let tail = filter(p, &list.popped_front());
             if p(head) {
-                List::cons(*head, &tail)
+                List::cons(head.clone(), &tail)
             } else {
                 tail
             }
@@ -183,7 +183,7 @@ pub fn filter<T: Copy>(p: impl FnOnce(&T) -> bool + Copy, list: &List<T>) -> Lis
     }
 }
 
-pub fn reverse<T: Clone>(list: &List<T>) -> List<T> {
+pub fn reverse<T: Clone>(list: List<T>) -> List<T> {
     foldl(
         |acc: List<T>, v: &T| List::cons(v.clone(), &acc),
         List::empty(),
@@ -191,34 +191,36 @@ pub fn reverse<T: Clone>(list: &List<T>) -> List<T> {
     )
 }
 
-pub fn fmap<U, T>(f: impl Fn(&T) -> U, list: &List<T>) -> List<U>
+pub fn fmap<U, T, F>(mut f: F, list: &List<T>) -> List<U>
 where
-    T: Clone,
-    U: Clone,
+    F: FnMut(&T) -> U,
 {
     let mut result = List::<U>::empty();
     for x in list {
         result = result.pushed_front(f(&x));
     }
     result
-    // match list.front() {
-    //     None => List::<U>::empty(),
-    //     Some(head) => List::cons(f(*head), &fmap(f, &list.popped_front()))
-    // }
 }
 
-pub fn foldl<U, T>(f: impl FnOnce(U, &T) -> U + Copy, acc: U, list: &List<T>) -> U
+pub fn foldl<U, T, F>(mut f: F, mut acc: U, mut list: List<T>) -> U
 where
-    T: Clone,
+    F: FnMut(U, &T) -> U,
 {
-    match list.front() {
-        None => acc,
-        Some(head) => foldl(f, f(acc, head), &list.popped_front()),
+    loop {
+        match list.front() {
+            None => break,
+            Some(head) => {
+                acc = f(acc, head);
+                list = list.popped_front()
+            }
+        }
     }
+    acc
 }
 
-pub fn foldr<U, T>(f: impl FnOnce(&T, U) -> U + Copy, acc: U, list: &List<T>) -> U
+pub fn foldr<U, T, F>(f: F, acc: U, list: &List<T>) -> U
 where
+    F: FnOnce(&T, U) -> U + Copy,
     T: Clone,
 {
     match list.front() {
@@ -227,7 +229,7 @@ where
     }
 }
 
-pub fn for_each<T>(list: &List<T>, mut f: impl FnMut(&T) + Copy) {
+pub fn for_each<T>(list: &List<T>, mut f: impl FnMut(&T)) {
     let mut node = &list.head;
     loop {
         match node {
@@ -260,10 +262,14 @@ pub fn concat_all<T: Clone>(xss: &List<List<T>>) -> List<T> {
 
 // List Monad
 pub fn mreturn<T>(t: T) -> List<T> {
-    List::cons(t, &List::empty())
+    List::from_value(t)
 }
 
-pub fn mbind<A: Copy, B: Copy>(list: &List<A>, k: impl Fn(&A) -> List<B> + Copy) -> List<B> {
+pub fn mbind<A, B, F>(list: &List<A>, k: F) -> List<B>
+where
+    F: Fn(&A) -> List<B>,
+    B: Clone,
+{
     let list_list = fmap(k, list);
     concat_all(&list_list)
 }
@@ -377,7 +383,7 @@ mod tests {
 
         let list = synced_list!(4, 3, 2, 1);
 
-        assert_eq!(foldl(sum, 0, &list), foldr(|a, b| a + b, 0, &list));
+        assert_eq!(foldl(sum, 0, list.clone()), foldr(|a, b| a + b, 0, &list));
     }
 
     #[test]
@@ -385,5 +391,58 @@ mod tests {
         let list = mreturn(3);
 
         assert_eq!(list, synced_list!(3));
+    }
+
+    mod no_copy {
+
+        use super::*;
+
+        #[derive(Debug, PartialEq, Clone)]
+        struct NoCopy(i32);
+
+        #[test]
+        fn new_creates_empty_list() {
+            let lst = List::<NoCopy>::new();
+
+            assert!(lst.is_empty());
+        }
+
+        #[test]
+        fn concat_all_concats() {
+            let lst1 = List::from_value(NoCopy(1));
+            let lst2 = List::from_value(NoCopy(2));
+            let lst_all = synced_list!(lst1, lst2);
+
+            assert_eq!(
+                concat_all(&lst_all),
+                List::cons(NoCopy(1), &List::from_value(NoCopy(2)))
+            )
+        }
+
+        #[test]
+        fn sum_w_foldl_and_foldr_are_equal() {
+            fn sum(a: NoCopy, b: &NoCopy) -> NoCopy {
+                NoCopy(a.0 + b.0)
+            }
+
+            let list = synced_list!(NoCopy(4), NoCopy(3), NoCopy(2), NoCopy(1));
+
+            assert_eq!(
+                foldl(sum, NoCopy(0), list.clone()),
+                foldr(|a, b| NoCopy(a.0 + b.0), NoCopy(0), &list)
+            );
+        }
+
+        #[test]
+        fn sub_w_foldl_and_foldr_are_unequal() {
+            fn sub(a: NoCopy, b: &NoCopy) -> NoCopy {
+                NoCopy(a.0 - b.0)
+            }
+
+            let list = synced_list!(NoCopy(1), NoCopy(1), NoCopy(1));
+
+            assert_eq!(foldl(sub, NoCopy(0), list.clone()), NoCopy(-3));
+            assert_eq!(foldr(|a, b| NoCopy(a.0 - b.0), NoCopy(0), &list), NoCopy(1));
+        }
     }
 }
