@@ -6,9 +6,15 @@ pub struct Tree<T> {
     root: Option<Rc<TreeNode<T>>>,
 }
 
+impl<T> Default for Tree<T> {
+    fn default() -> Self {
+        Self { root: None }
+    }
+}
+
 impl<T> Tree<T> {
-    pub fn new() -> Self {
-        Tree { root: None }
+    pub fn empty() -> Self {
+        Tree::<T>::default()
     }
 
     pub fn leaf(x: T) -> Self {
@@ -17,7 +23,7 @@ impl<T> Tree<T> {
         }
     }
 
-    pub fn tree(x: T, children: List<Self>) -> Self {
+    pub fn new(x: T, children: List<Self>) -> Self {
         Tree {
             root: Some(Rc::new(TreeNode::new(x, children))),
         }
@@ -98,12 +104,14 @@ impl<T: Clone> Clone for TreeNode<T> {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
     use super::*;
     use crate::unsynced_list;
 
     #[test]
     fn new_creates_empty_tree() {
-        let tree = Tree::<&str>::new();
+        let tree = Tree::<&str>::empty();
 
         assert!(tree.is_empty());
         assert_eq!(tree.root(), None);
@@ -121,6 +129,7 @@ mod tests {
 
     #[test]
     fn tree_creates_tree_w_no_children() {
+        let tree = Tree::new("a", List::new());
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
@@ -130,7 +139,7 @@ mod tests {
     #[test]
     fn tree_creates_tree_w_children() {
         let children = unsynced_list!(Tree::leaf("b"), Tree::leaf("c"));
-        let tree = Tree::tree("a", children.clone());
+        let tree = Tree::new("a", children.clone());
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
@@ -140,12 +149,12 @@ mod tests {
 
     #[test]
     fn test_partial_eq() {
-        let t1 = Tree::<i32>::new();
-        let t2 = Tree::<i32>::new();
+        let t1 = Tree::<i32>::empty();
+        let t2 = Tree::<i32>::empty();
         let t3 = Tree::leaf(4);
-        let t4 = Tree::tree(4, unsynced_list!(Tree::leaf(5)));
-        let t5 = Tree::tree(4, unsynced_list!(Tree::leaf(5)));
-        let t6 = Tree::tree(4, unsynced_list!(Tree::leaf(6)));
+        let t4 = Tree::new(4, unsynced_list!(Tree::leaf(5)));
+        let t5 = Tree::new(4, unsynced_list!(Tree::leaf(5)));
+        let t6 = Tree::new(4, unsynced_list!(Tree::leaf(6)));
         assert!(t1 == t2);
         assert!(t1 != t3);
         assert!(t1 != t4);
@@ -159,9 +168,9 @@ mod tests {
 
     #[test]
     fn tree_is_clone() {
-        let t1 = Tree::<&str>::new();
+        let t1 = Tree::<&str>::empty();
         let t2 = Tree::leaf("a");
-        let t3 = Tree::tree("b", List::from_value(t2.clone()));
+        let t3 = Tree::new("b", List::from_value(t2.clone()));
 
         assert_eq!(t1, t1.clone());
         assert_eq!(t2, t2.clone());
@@ -170,6 +179,7 @@ mod tests {
 
     mod non_clonable {
         use alloc::{boxed::Box, string::String};
+
         use super::*;
 
         #[derive(Debug, PartialEq)]
@@ -196,7 +206,7 @@ mod tests {
                 v: Box::new(String::from("r")),
             };
             let t1 = Tree::leaf(v1);
-            let t2 = Tree::tree(v2, List::from_value(t1.clone()));
+            let t2 = Tree::new(v2, List::from_value(t1.clone()));
             let t1_clone = t1.clone();
             assert_eq!(t1, t1_clone);
             let t2_clone = t2.clone();

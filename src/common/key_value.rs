@@ -55,11 +55,3 @@ where
         self.0 == *other
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn empty_creates_map() {}
-} // mod tests
