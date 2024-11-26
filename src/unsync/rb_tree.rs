@@ -21,6 +21,12 @@ enum Colour {
     Black,
 }
 
+impl<T> Default for RBTree<T> {
+    fn default() -> Self {
+        RBTree { root: None }
+    }
+}
+
 impl<T> Clone for RBTree<T> {
     fn clone(&self) -> Self {
         RBTree {
@@ -306,7 +312,7 @@ where
 
 impl<T> RBNode<T> {
     fn left(&self) -> Option<&Rc<Self>> {
-        self.left.as_ref().map(|node| node)
+        self.left.as_ref()
     }
 
     fn right(&self) -> Option<&Rc<Self>> {
@@ -544,29 +550,16 @@ where
 
 impl<T: PartialEq + Clone> PartialEq for RBTree<T> {
     fn eq(&self, other: &Self) -> bool {
-        if self.is_empty() && other.is_empty() {
-            return true;
-        } else if self.is_empty() || other.is_empty() {
-            return false;
-        }
-
-        if self.root() != other.root() {
-            return false;
-        }
-        if self.left() != other.left() {
-            return false;
-        }
-        if self.right() != other.right() {
-            return false;
-        }
-
-        true
+        self.root == other.root
     }
 }
 
 impl<T: PartialEq> PartialEq for RBNode<T> {
     fn eq(&self, other: &Self) -> bool {
-        false
+        self.colour == other.colour
+            && self.element == other.element
+            && self.left == other.left
+            && self.right == other.right
     }
 }
 
@@ -689,5 +682,23 @@ mod tests {
         let t1 = RBTree::new();
 
         assert_eq!(t1.get_or_default(&5, &7), &7);
+    }
+    mod partial_eq {
+        use super::*;
+
+        #[test]
+        fn it_works() {
+            let t0 = RBTree::default();
+            let t1 = t0.inserted(1);
+            let t2 = t1.inserted(2);
+            let t3 = t2.inserted(3);
+
+            let s0 = RBTree::default();
+            let s1 = s0.inserted(3);
+            let s2 = s1.inserted(2);
+            let s3 = s2.inserted(1);
+
+            assert_eq!(t3, s3);
+        }
     }
 }
