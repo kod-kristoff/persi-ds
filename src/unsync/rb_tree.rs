@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use alloc::rc::Rc;
 
 #[derive(Debug)]
 pub struct RBTree<T> {
@@ -572,6 +572,7 @@ impl<T: PartialEq> PartialEq for RBNode<T> {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
     use super::*;
 
     #[test]
@@ -600,7 +601,6 @@ mod tests {
             &RBTree::leaf("right"),
         );
 
-        println!("{:?}", tree);
         assert_eq!(tree.left(), RBTree::leaf("left"));
         assert_eq!(tree.right(), RBTree::leaf("right"));
     }
@@ -667,7 +667,7 @@ mod tests {
         K: PartialOrd,
         V: PartialEq,
     {
-        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
             self.0.partial_cmp(&other.0)
         }
     }

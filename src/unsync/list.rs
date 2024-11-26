@@ -1,8 +1,8 @@
+use alloc::rc::Rc;
+use core::borrow::Borrow;
+use core::fmt;
+use core::fmt::Debug;
 use itertools::{EitherOrBoth, Itertools};
-use std::borrow::Borrow;
-use std::fmt;
-use std::fmt::Debug;
-use std::rc::Rc;
 
 #[derive(Debug)]
 pub struct List<T> {

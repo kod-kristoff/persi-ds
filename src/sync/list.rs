@@ -1,7 +1,6 @@
-use itertools::{EitherOrBoth, Itertools};
-use std::fmt;
-use std::fmt::Debug;
-use std::sync::Arc;
+use alloc::sync::Arc;
+use core::fmt;
+use core::fmt::Debug;
 
 #[derive(Debug)]
 pub struct List<T> {

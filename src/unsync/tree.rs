@@ -1,5 +1,5 @@
 use crate::unsync::list::List;
-use std::rc::Rc;
+use alloc::rc::Rc;
 
 #[derive(Debug)]
 pub struct Tree<T> {
@@ -121,7 +121,6 @@ mod tests {
 
     #[test]
     fn tree_creates_tree_w_no_children() {
-        let tree = Tree::tree("a", List::new());
 
         assert!(!tree.is_empty());
         assert_eq!(tree.root(), Some(&"a"));
@@ -170,16 +169,19 @@ mod tests {
     }
 
     mod non_clonable {
+        use alloc::{boxed::Box, string::String};
         use super::*;
 
         #[derive(Debug, PartialEq)]
         struct NoClone {
-            pub v: Box<String>, 
+            pub v: Box<String>,
         }
 
         #[test]
         fn leaf_tree_can_be_cloned() {
-            let v1 = NoClone { v: Box::new(String::from("r")) };
+            let v1 = NoClone {
+                v: Box::new(String::from("r")),
+            };
             let t1 = Tree::leaf(v1);
             let t1_clone = t1.clone();
             assert_eq!(t1, t1_clone);
@@ -187,8 +189,12 @@ mod tests {
 
         #[test]
         fn tree_can_be_cloned() {
-            let v1 = NoClone { v: Box::new(String::from("r")) };
-            let v2 = NoClone { v: Box::new(String::from("r")) };
+            let v1 = NoClone {
+                v: Box::new(String::from("r")),
+            };
+            let v2 = NoClone {
+                v: Box::new(String::from("r")),
+            };
             let t1 = Tree::leaf(v1);
             let t2 = Tree::tree(v2, List::from_value(t1.clone()));
             let t1_clone = t1.clone();
