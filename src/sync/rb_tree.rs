@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use alloc::sync::Arc;
 
 #[derive(Debug)]
 pub struct RBTree<T> {
@@ -606,7 +606,6 @@ mod tests {
             &RBTree::leaf("right"),
         );
 
-        println!("{:?}", tree);
         assert_eq!(tree.left(), RBTree::leaf("left"));
         assert_eq!(tree.right(), RBTree::leaf("right"));
     }
@@ -673,7 +672,7 @@ mod tests {
         K: PartialOrd,
         V: PartialEq,
     {
-        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        fn partial_cmp(&self, other: &Self) -> Option<core::cmp::Ordering> {
             self.0.partial_cmp(&other.0)
         }
     }

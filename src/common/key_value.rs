@@ -1,4 +1,4 @@
-use std::cmp::Ordering;
+use core::cmp::Ordering;
 
 #[derive(Debug)]
 pub struct KeyValue<K, V>(pub K, pub V);
