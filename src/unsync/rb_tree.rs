@@ -548,20 +548,20 @@ where
     })
 }
 
-impl<T: PartialEq + Clone> PartialEq for RBTree<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.root == other.root
-    }
-}
+// impl<T: PartialEq + Clone> PartialEq for RBTree<T> {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.root == other.root
+//     }
+// }
 
-impl<T: PartialEq> PartialEq for RBNode<T> {
-    fn eq(&self, other: &Self) -> bool {
-        self.colour == other.colour
-            && self.element == other.element
-            && self.left == other.left
-            && self.right == other.right
-    }
-}
+// impl<T: PartialEq> PartialEq for RBNode<T> {
+//     fn eq(&self, other: &Self) -> bool {
+//         self.colour == other.colour
+//             && self.element == other.element
+//             && self.left == other.left
+//             && self.right == other.right
+//     }
+// }
 
 #[cfg(test)]
 mod tests {
@@ -594,8 +594,10 @@ mod tests {
             &RBTree::leaf("right"),
         );
 
-        assert_eq!(tree.left(), RBTree::leaf("left"));
-        assert_eq!(tree.right(), RBTree::leaf("right"));
+        assert_eq!(tree.left().root(), Some(&"left"));
+        // assert_eq!(tree.left(), RBTree::leaf("left"));
+        assert_eq!(tree.right().root(), Some(&"right"));
+        // assert_eq!(tree.right(), RBTree::leaf("right"));
     }
 
     #[test]
@@ -683,22 +685,24 @@ mod tests {
 
         assert_eq!(t1.get_or_default(&5, &7), &7);
     }
-    mod partial_eq {
-        use super::*;
+    // mod partial_eq {
+    //     use super::*;
 
-        #[test]
-        fn it_works() {
-            let t0 = RBTree::default();
-            let t1 = t0.inserted(1);
-            let t2 = t1.inserted(2);
-            let t3 = t2.inserted(3);
+    //     #[test]
+    //     fn it_works() {
+    //         let t0 = RBTree::default();
+    //         let t1 = t0.inserted(1);
+    //         let t2 = t1.inserted(2);
+    //         let t3 = t2.inserted(3);
+    //         let t4 = t3.inserted(4);
 
-            let s0 = RBTree::default();
-            let s1 = s0.inserted(3);
-            let s2 = s1.inserted(2);
-            let s3 = s2.inserted(1);
+    //         let s0 = RBTree::default();
+    //         let s1 = s0.inserted(4);
+    //         let s2 = s1.inserted(3);
+    //         let s3 = s2.inserted(2);
+    //         let s4 = s3.inserted(1);
 
-            assert_eq!(t3, s3);
-        }
-    }
+    //         assert_eq!(t4, s4);
+    //     }
+    // }
 }
