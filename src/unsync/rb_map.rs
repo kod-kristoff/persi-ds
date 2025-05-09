@@ -1,4 +1,4 @@
-use crate::{common::KeyValue, unsync::rb_tree::RBTree};
+use crate::{shared::KeyValue, unsync::rb_tree::RBTree};
 
 #[derive(Debug)]
 pub struct RBMap<K, V>(RBTree<KeyValue<K, V>>);

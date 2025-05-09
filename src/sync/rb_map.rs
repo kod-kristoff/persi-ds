@@ -1,4 +1,4 @@
-use crate::{common::KeyValue, sync::rb_tree::RBTree};
+use crate::{shared::KeyValue, sync::rb_tree::RBTree};
 
 pub struct RBMap<K, V>(RBTree<KeyValue<K, V>>);
 
