@@ -10,9 +10,9 @@ fn test_clone_in_thread() {
 
     let list_clone = list.clone();
     let handle = thread::spawn(move || {
-        assert_eq!(foldl(|a, b| a + b, 0, list_clone), 7);
+        assert_eq!(foldl(|a, b| a + b, 0, &list_clone), 7);
     });
-    assert_eq!(foldl(|a, b| a + b, 0, list), 7);
+    assert_eq!(foldl(|a, b| a + b, 0, &list), 7);
     handle.join().unwrap();
 }
 
