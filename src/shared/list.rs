@@ -24,7 +24,7 @@ impl<L: Link> Clone for List<L> {
 }
 
 impl<L: Link> List<L> {
-    /// Creates an empty `List``.
+    /// Creates an empty `List`.
     ///
     /// # Examples
     /// ```
@@ -35,7 +35,7 @@ impl<L: Link> List<L> {
         List::default()
     }
 
-    /// Creates an empty `List``.
+    /// Creates an empty `List`.
     ///
     /// # Examples
     /// ```
