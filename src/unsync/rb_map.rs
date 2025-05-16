@@ -82,6 +82,7 @@ mod tests {
 
         let m = m1.inserted(5, "b");
 
+        assert!(m1.is_empty());
         assert!(!m.is_empty());
         assert!(m.contains_key(&5));
         assert!(!m.contains_key(&6));
